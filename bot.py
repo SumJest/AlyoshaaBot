@@ -10,17 +10,34 @@ from pyowm.utils.config import get_default_config
 from PIL import Image, ImageDraw, ImageFont
 from threading import Thread
 
+if not os.path.exists("users"):
+    os.makedirs("users")
+    print("\"users\" directory created...")
+if not os.path.exists("logs"):
+    os.makedirs("logs")
+    print("\"logs\" directory created...")
+if not os.path.isfile("users.txt"):
+    open("users.txt",'w').close()
+    print("\"users.txt\" file created...")
+
 # configurating tokens
-file = open('tokens.json', 'r')
-config = json.loads(file.read())
-file.close()
+try:
+    file = open('tokens.json', 'r')
+    config = json.loads(file.read())
+    file.close()
+except:
+    print("You must have tokens.json file with your tokens!")
+    exit()
+
 # configurating tokens
 
 bot = telebot.TeleBot(config['tg'])
+print('Telegram bot api loaded...')
 config_dict = get_default_config()
 config_dict['language'] = 'ru'
 owm = OWM(config['owm'], config_dict)
 mgr = owm.weather_manager()
+print('OWM api loaded...')
 gameArray = []
 status = {}
 winds = ["С", "СВ", "В", "ЮВ", "Ю", "ЮЗ", "З", "CЗ"]
@@ -31,16 +48,15 @@ sticker_pack = ['CAACAgIAAxkBAAIHKF7yTUVSJTAvb5-uPuRBDtuMFxquAALcxgEAAWOLRgyxtRI
                 'CAACAgIAAxkBAAIHLF7yTUivakhqDr9yEpUAAZ-8UoDc6wAC4MYBAAFji0YMSLHz-sj_JqkaBA',
                 'CAACAgIAAxkBAAIHLV7yTUjuo0nJ1hhYMQx3W5qktbe_AALhxgEAAWOLRgzvmnzNp7-0ehoE']
 
-
+print("!!!ALYOSHAA BOT STARTED SUCCESSFUL!!!")
 def getUsers():
-    users = {}
+    users = []
     try:
         text_file = open("users.txt", "r", encoding="utf-8")
         data = text_file.readlines()
         i = 0
         for line in data:
-            users[i] = line.rstrip()
-            i += 1
+            users.append(line.rstrip())
         return users
     except:
         pass
