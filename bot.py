@@ -2,7 +2,6 @@ import telebot
 import random
 import datetime
 import json
-import requests
 import os
 from pyowm import OWM
 from geopy.geocoders import Nominatim
@@ -21,20 +20,38 @@ if not os.path.isfile("users.txt"):
     print("\"users.txt\" file created...")
 
 # configurating tokens
-try:
-    file = open('tokens.json', 'r')
-    config = json.loads(file.read())
+if not os.path.exists("tokens.json"):
+    print("You must have tokens.json file with your tokens...")
+    file = open('tokens.json', 'w')
+    file.write("{\"tg\": \"YOUR_TELEGRAM_BOT_TOKEN\", \"owm\": \"YOUR_OWM_TOKEN\"}")
     file.close()
-except:
-    print("You must have tokens.json file with your tokens!")
+    print("Token file created. Please past your tokens. Program will shutdown...")
     exit()
+file = open('tokens.json', 'r')
+config = json.loads(file.read())
+file.close()
 
 # configurating tokens
 
+try:
+    telebot.apihelper.get_me(config['tg'])
+except:
+    print("TelegramAPI token error! Program will shut down!")
+    exit()
 bot = telebot.TeleBot(config['tg'])
 print('Telegram bot api loaded...')
+
+
 config_dict = get_default_config()
 config_dict['language'] = 'ru'
+try:
+    OWM(config['owm'], config_dict).weather_manager().weather_at_place("Moscow")
+except:
+    print("OWM api token error! Program will shut down!")
+    exit()
+
+
+
 owm = OWM(config['owm'], config_dict)
 mgr = owm.weather_manager()
 print('OWM api loaded...')
