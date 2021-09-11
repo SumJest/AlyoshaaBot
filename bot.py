@@ -656,8 +656,8 @@ def sticker_message(message):
 @bot.message_handler(content_types=["location"])
 def location(message):
     if message.location is not None:
-        # log(message)
-        print("latitude: %s; longitude: %s" % (message.location.latitude, message.location.longitude))
+        message.text="[location]: latitude: %s; longitude: %s" % (message.location.latitude, message.location.longitude)
+        log(message)
     if dict.get(status, message.chat.id) == 1:
         thread1 = Thread(target=setCity, args=(message.chat.id, message.location))
         thread1.start()
