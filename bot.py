@@ -363,6 +363,7 @@ def weather_message(message):
     log(message)
     text_file = open("users/" + str(message.chat.id) + ".txt", "r", encoding="utf-8")
     city = json.loads(text_file.read())['city']
+    text_file.close()
     bot.send_message(message.chat.id, "Берем погоду в городе: " + city)
     thread1 = Thread(target=getweather, args=(message.chat.id, city))
     thread1.start()
