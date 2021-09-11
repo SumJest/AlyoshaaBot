@@ -7,34 +7,40 @@ import os
 from pyowm import OWM
 from geopy.geocoders import Nominatim
 from pyowm.utils.config import get_default_config
-from PIL import Image,ImageDraw,ImageFont
+from PIL import Image, ImageDraw, ImageFont
 from threading import Thread
 
-#configurating tokens
-file=open('tokens.json','r')
-config=json.loads(file.read())
+# configurating tokens
+file = open('tokens.json', 'r')
+config = json.loads(file.read())
 file.close()
-#configurating tokens
+# configurating tokens
 
 bot = telebot.TeleBot(config['tg'])
 config_dict = get_default_config()
 config_dict['language'] = 'ru'
-owm = OWM(config['owm'],config_dict)
+owm = OWM(config['owm'], config_dict)
 mgr = owm.weather_manager()
 gameArray = []
 status = {}
-winds = ["С","СВ","В","ЮВ","Ю","ЮЗ","З","CЗ"]
-sticker_pack = ['CAACAgIAAxkBAAIHKF7yTUVSJTAvb5-uPuRBDtuMFxquAALcxgEAAWOLRgyxtRIUSi4a_xoE','CAACAgIAAxkBAAIHKV7yTUZxQis7c5RU_NhVm3xX3KLAAALdxgEAAWOLRgzrTyk77CMCURoE','CAACAgIAAxkBAAIHKl7yTUbSeCZyo2J_QEGVS03LJiYPAALexgEAAWOLRgxUcf2Fq_sguRoE','CAACAgIAAxkBAAIHK17yTUeGimwsHn0m8DnZd2Z-0IMJAALfxgEAAWOLRgwcRRMg1btjFxoE','CAACAgIAAxkBAAIHLF7yTUivakhqDr9yEpUAAZ-8UoDc6wAC4MYBAAFji0YMSLHz-sj_JqkaBA','CAACAgIAAxkBAAIHLV7yTUjuo0nJ1hhYMQx3W5qktbe_AALhxgEAAWOLRgzvmnzNp7-0ehoE']
+winds = ["С", "СВ", "В", "ЮВ", "Ю", "ЮЗ", "З", "CЗ"]
+sticker_pack = ['CAACAgIAAxkBAAIHKF7yTUVSJTAvb5-uPuRBDtuMFxquAALcxgEAAWOLRgyxtRIUSi4a_xoE',
+                'CAACAgIAAxkBAAIHKV7yTUZxQis7c5RU_NhVm3xX3KLAAALdxgEAAWOLRgzrTyk77CMCURoE',
+                'CAACAgIAAxkBAAIHKl7yTUbSeCZyo2J_QEGVS03LJiYPAALexgEAAWOLRgxUcf2Fq_sguRoE',
+                'CAACAgIAAxkBAAIHK17yTUeGimwsHn0m8DnZd2Z-0IMJAALfxgEAAWOLRgwcRRMg1btjFxoE',
+                'CAACAgIAAxkBAAIHLF7yTUivakhqDr9yEpUAAZ-8UoDc6wAC4MYBAAFji0YMSLHz-sj_JqkaBA',
+                'CAACAgIAAxkBAAIHLV7yTUjuo0nJ1hhYMQx3W5qktbe_AALhxgEAAWOLRgzvmnzNp7-0ehoE']
+
 
 def getUsers():
-    users={}
+    users = {}
     try:
         text_file = open("users.txt", "r", encoding="utf-8")
         data = text_file.readlines()
-        i=0
+        i = 0
         for line in data:
-            users[i]=line.rstrip()
-            i+=1
+            users[i] = line.rstrip()
+            i += 1
         return users
     except:
         pass
@@ -42,7 +48,7 @@ def getUsers():
 
 def isUserExists(id):
     try:
-        text_file=open("users.txt","r",encoding="utf-8")
+        text_file = open("users.txt", "r", encoding="utf-8")
         users = text_file.readlines()
         contains = False
         for line in users:
@@ -52,9 +58,10 @@ def isUserExists(id):
     except BaseException:
         print('her')
 
-def getweather(id,city):
+
+def getweather(id, city):
     try:
-        answer="""
+        answer = """
 Ветер: $2
 Влажность: $3%
 Температура: $4 °C
@@ -63,15 +70,17 @@ def getweather(id,city):
         """
         observation = mgr.weather_at_place(city)
         w = observation.weather
-        answer=answer.replace("$2",str(w.wind()['speed']) + " м/c " + winds[int(((w.wind()['deg']+22.5)//45)%8)])
-        answer=answer.replace("$3",str(w.humidity))
-        answer=answer.replace("$4",str(w.temperature('celsius')['temp']))
-        answer=answer.replace("$5",str(w.clouds))
-        answer=answer.replace("$6",datetime.datetime.fromtimestamp(datetime.datetime.today().timestamp()+w.utc_offset).strftime("%H:%M:%S"))
-        bot.send_message(id,w.detailed_status.capitalize())
-        bot.send_message(id,answer)
+        answer = answer.replace("$2",
+                                str(w.wind()['speed']) + " м/c " + winds[int(((w.wind()['deg'] + 22.5) // 45) % 8)])
+        answer = answer.replace("$3", str(w.humidity))
+        answer = answer.replace("$4", str(w.temperature('celsius')['temp']))
+        answer = answer.replace("$5", str(w.clouds))
+        answer = answer.replace("$6", datetime.datetime.fromtimestamp(
+            datetime.datetime.today().timestamp() + w.utc_offset).strftime("%H:%M:%S"))
+        bot.send_message(id, w.detailed_status.capitalize())
+        bot.send_message(id, answer)
         im = Image.open('icons/weather1.png')
-        weather = Image.open('icons/'+w.weather_icon_name+'.png')
+        weather = Image.open('icons/' + w.weather_icon_name + '.png')
         im.paste(weather, (400, 20), weather)
         draw_text = ImageDraw.Draw(im)
         font = ImageFont.truetype("timesbd.ttf", 30)
@@ -80,20 +89,26 @@ def getweather(id,city):
         draw_text.text((10, 150), answer, font=font, fill=('#4d4d4d'))
         draw_text.text((30, 400), "Восход", font=font, fill=('#4d4d4d'))
         draw_text.text((360, 400), "Закат", font=font, fill=('#4d4d4d'))
-        draw_text.text((20, 440), datetime.datetime.fromtimestamp(w.sunrise_time('unix')+w.utc_offset).strftime("%H:%M:%S"), font=font, fill=('#ed6e4d'))
-        draw_text.text((350, 440), datetime.datetime.fromtimestamp(w.sunset_time('unix')+w.utc_offset).strftime("%H:%M:%S"), font=font, fill=('#ed6e4d'))
+        draw_text.text((20, 440),
+                       datetime.datetime.fromtimestamp(w.sunrise_time('unix') + w.utc_offset).strftime("%H:%M:%S"),
+                       font=font, fill=('#ed6e4d'))
+        draw_text.text((350, 440),
+                       datetime.datetime.fromtimestamp(w.sunset_time('unix') + w.utc_offset).strftime("%H:%M:%S"),
+                       font=font, fill=('#ed6e4d'))
 
-        im.save(str(id)+'.png')
-        photo= open(str(id)+'.png','rb')
-        bot.send_photo(str(id),photo)
+        im.save(str(id) + '.png')
+        photo = open(str(id) + '.png', 'rb')
+        bot.send_photo(str(id), photo)
         photo.close()
-        os.remove(str(id)+'.png')
+        os.remove(str(id) + '.png')
 
     except BaseException as exc:
-        bot.send_message(id,"Упс..произошла какая-то ошибка! Возможно ваш город не поддерживается, обратитесь к администрации /report ваше обращение")
+        bot.send_message(id,
+                         "Упс..произошла какая-то ошибка! Возможно ваш город не поддерживается, обратитесь к администрации /report ваше обращение")
         print(type(exc))  # the exception instance
         print(exc.args)  # arguments stored in .args
         print(exc)
+
 
 def getProfile(id):
     text_file = open('users/' + str(id) + '.txt', 'r', encoding='utf-8')
@@ -101,14 +116,13 @@ def getProfile(id):
     text_file.close()
     return prof
 
-def setCity(user_id,location):
+
+def setCity(user_id, location):
     try:
- #       cityName=(requests.get('https://maps.googleapis.com/maps/api/geocode/json?address='+dirtyCityName+'&key=AIzaSyCXmlfzhF2rx3Yz7GeWUhulAiJxHG5zkUM&language=ru').json()['results'])[0]['address_components'][0]['long_name']
+        #       cityName=(requests.get('https://maps.googleapis.com/maps/api/geocode/json?address='+dirtyCityName+'&key=AIzaSyCXmlfzhF2rx3Yz7GeWUhulAiJxHG5zkUM&language=ru').json()['results'])[0]['address_components'][0]['long_name']
         geolocator = Nominatim(user_agent="geoapiExercises")
-
-
-        cityName = str(geolocator.reverse(str(location.latitude) + "," + str(location.longitude), zoom=10)).split(', ')[0]
-        print(cityName)
+        cityName = str(
+            geolocator.reverse(str(location.latitude) + "," + str(location.longitude)).raw['address']['city'])
         text_file = open('users/' + str(user_id) + '.txt', 'r', encoding='utf-8')
         prof = json.loads(text_file.read())
         text_file.close()
@@ -127,11 +141,13 @@ def setCity(user_id,location):
         print(type(exc))  # the exception instance
         print(exc.args)  # arguments stored in .args
         print(exc)
-        bot.send_message(user_id, "Произошла ошибка, попробуйте уточнить название города, либо обратитесь к администрации - /report ваше сообщение")
+        bot.send_message(user_id,
+                         "Произошла ошибка, попробуйте уточнить название города, либо обратитесь к администрации - /report ваше сообщение")
     dict.pop(status, user_id)
 
-def append_to_file(file_name,text):
-    text_file = open(file_name,'a',encoding='utf-8')
+
+def append_to_file(file_name, text):
+    text_file = open(file_name, 'a', encoding='utf-8')
     text_file.write(text)
     text_file.close()
 
@@ -146,14 +162,18 @@ class knGame:
         self.mesa = 0
         self.mesd = 0
 
+
 def log(message):
     now = datetime.datetime.today()
-    print('['+ now.strftime("%d.%m.%Y-%H:%M:%S") +'] '+ bot.get_chat(message.chat.id).first_name+' ('+str(message.chat.id)+'): ' + str(message.text))
-    #'logs\\log '+now.strftime("%d-%m-%Y"+'.txt'),'['+ now.strftime("%d.%m.%Y-%H:%M:%S") +'] '+ bot.get_chat(message.chat.id).first_name+' ('+str(message.chat.id)+'): ' + message.text +'\n'
-    thread1 = Thread(target=append_to_file,args=(('logs/log '+now.strftime("%d-%m-%Y"+'.txt')),('['+ now.strftime("%d.%m.%Y-%H:%M:%S") +'] '+ bot.get_chat(message.chat.id).first_name+' ('+str(message.chat.id)+'): ' + message.text +'\n'),))
+    print('[' + now.strftime("%d.%m.%Y-%H:%M:%S") + '] ' + bot.get_chat(message.chat.id).first_name + ' (' + str(
+        message.chat.id) + '): ' + str(message.text))
+    thread1 = Thread(target=append_to_file, args=(('logs/log ' + now.strftime("%d-%m-%Y" + '.txt')), (
+                '[' + now.strftime("%d.%m.%Y-%H:%M:%S") + '] ' + bot.get_chat(message.chat.id).first_name + ' (' + str(
+            message.chat.id) + '): ' + message.text + '\n'),))
     thread1.start()
     thread1.join()
     return
+
 
 def RepresentsInt(s):
     try:
@@ -170,14 +190,15 @@ def start_message(message):
     button_phone = telebot.types.KeyboardButton(text="/weather")
     keyboard.add(button_phone)
     bot.send_message(message.chat.id,
-                     'Привет, меня зовут Алёша, я - бот. У меня есть много классных функций. Заценишь? /help', reply_markup=keyboard)
+                     'Привет, меня зовут Алёша, я - бот. У меня есть много классных функций. Заценишь? /help',
+                     reply_markup=keyboard)
     bot.send_message(message.chat.id, 'Ваш id: ' + str(message.chat.id))
-    data={"id":message.chat.id,"city":None,"isEvening":None}
-    isExist=False
+    data = {"id": message.chat.id, "city": None, "isEvening": None}
+    isExist = False
     try:
         text_file = open('users/' + str(message.chat.id) + '.txt', 'r', encoding='utf-8')
         text_file.close()
-        isExist=True
+        isExist = True
     except BaseException:
         print("nasdo")
     if not isExist:
@@ -186,7 +207,7 @@ def start_message(message):
         text_file.close()
     text_file = open('users/' + str(message.chat.id) + '.txt', 'r', encoding='utf-8')
     prof = json.loads(text_file.read())
-    if prof['city'] == None : #or prof['isEvening'] == None
+    if prof['city'] == None:  # or prof['isEvening'] == None
         keyboard = telebot.types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
         button_phone = telebot.types.KeyboardButton(text="/settings")
         keyboard.add(button_phone)
@@ -195,14 +216,14 @@ def start_message(message):
                          reply_markup=keyboard)
     text_file.close()
 
-    text_file=open("users.txt","r+",encoding="utf-8")
+    text_file = open("users.txt", "r+", encoding="utf-8")
     users = text_file.readlines()
     contains = False
     for line in users:
         print(line)
         if message.chat.id == int(line):
             contains = True
-    if contains == False:
+    if not contains:
         users.append(str(message.chat.id) + '\n')
     text_file.close()
     text_file = open('users.txt', 'w', encoding='utf-8')
@@ -211,20 +232,21 @@ def start_message(message):
 
     log(message)
 
+
 @bot.message_handler(commands=['users'])
 def users_message(message):
     log(message)
-    if dict.get(getProfile(message.chat.id),'admin')==True:
+    if dict.get(getProfile(message.chat.id), 'admin'):
         users = getUsers()
         mess = "first name --- chat id \n"
         for i in range(0, len(users)):
             try:
                 mess += bot.get_chat(users[i]).first_name
                 try:
-                    mess+='(@'+ bot.get_chat(users[i]).username+')'
+                    mess += '(@' + bot.get_chat(users[i]).username + ')'
                 except:
                     pass
-                mess +=" --- " + str(users[i])+"\n"
+                mess += " --- " + str(users[i]) + "\n"
             except:
                 pass
         bot.send_message(message.chat.id, mess)
@@ -248,7 +270,7 @@ def random_message(message):
 @bot.message_handler(commands=['info'])
 def info_message(message):
     log(message)
-    if dict.get(getProfile(message.chat.id),'admin')==True:
+    if dict.get(getProfile(message.chat.id), 'admin') == True:
         args = message.text.split(' ')
         if len(args) == 2:
             try:
@@ -261,30 +283,34 @@ def info_message(message):
             except BaseException:
                 print('EXCEPTION')
                 return
+
+
 @bot.message_handler(commands=['direct'])
 def direct_message(message):
     log(message)
-    if dict.get(getProfile(message.chat.id),'admin')==True:
+    if dict.get(getProfile(message.chat.id), 'admin') == True:
         args = message.text.split(' ')
-        if len(args)>=3 and RepresentsInt(args[1]) and isUserExists(args[1]):
+        if len(args) >= 3 and RepresentsInt(args[1]) and isUserExists(args[1]):
             try:
                 mess = ""
-                for i in range(2,len(args)):
-                    mess+=args[i]+" "
-                bot.send_message(args[1],mess)
+                for i in range(2, len(args)):
+                    mess += args[i] + " "
+                bot.send_message(args[1], mess)
             except BaseException:
                 print('EXCEPTION')
                 return
+
+
 @bot.message_handler(commands=['broadcast'])
 def broadcast_message(message):
     log(message)
-    if dict.get(getProfile(message.chat.id),'admin')==True:
+    if dict.get(getProfile(message.chat.id), 'admin') == True:
         args = message.text.split(' ')
-        if len(args)>=2:
+        if len(args) >= 2:
             try:
                 mess = ""
-                for i in range(1,len(args)):
-                    mess+=args[i]+" "
+                for i in range(1, len(args)):
+                    mess += args[i] + " "
                 text_file = open("users.txt", "r", encoding="utf-8")
                 users = text_file.readlines()
                 contains = False
@@ -297,15 +323,19 @@ def broadcast_message(message):
             except BaseException:
                 print('EXCEPTION')
                 return
+
+
 @bot.message_handler(commands=['weather'])
 def weather_message(message):
     log(message)
-    text_file=open("users/"+str(message.chat.id)+".txt","r",encoding="utf-8")
-    city=json.loads(text_file.read())['city']
-    bot.send_message(message.chat.id,"Берем погоду в городе: "+city)
-    thread1 = Thread(target=getweather, args=(message.chat.id,city))
+    text_file = open("users/" + str(message.chat.id) + ".txt", "r", encoding="utf-8")
+    city = json.loads(text_file.read())['city']
+    bot.send_message(message.chat.id, "Берем погоду в городе: " + city)
+    thread1 = Thread(target=getweather, args=(message.chat.id, city))
     thread1.start()
     thread1.join()
+
+
 @bot.message_handler(commands=['settings'])
 def settings(message):
     log(message)
@@ -317,13 +347,15 @@ def settings(message):
             status[message.chat.id] = 1
         text_file.close()
     except BaseException:
-        bot.send_message(message.chat.id,'Хмм, произошла ошибка, попробуйте сначала ввести /start, если ошибка повторилась, обратитесь к администратору - /report ')
+        bot.send_message(message.chat.id,
+                         'Хмм, произошла ошибка, попробуйте сначала ввести /start, если ошибка повторилась, обратитесь к администратору - /report ')
+
 
 @bot.message_handler(commands=['report'])
 def report(message):
     log(message)
-    args=message.text.split(' ')
-    if len(args)>=2:
+    args = message.text.split(' ')
+    if len(args) >= 2:
         mess = ""
         for i in range(1, len(args)):
             mess += args[i] + " "
@@ -332,9 +364,11 @@ def report(message):
             users = text_file.readlines()
             for line in users:
                 try:
-                    if dict.get(getProfile(line.rstrip()),'admin')==True:
-                        bot.send_message(int(line),'[REPORT] '+bot.get_chat(message.chat.id).first_name+'('+str(message.chat.id)+'): '+mess)
-                        print('[REPORT] '+bot.get_chat(message.chat.id).first_name+'('+str(message.chat.id)+'): '+mess)
+                    if dict.get(getProfile(line.rstrip()), 'admin') == True:
+                        bot.send_message(int(line), '[REPORT] ' + bot.get_chat(message.chat.id).first_name + '(' + str(
+                            message.chat.id) + '): ' + mess)
+                        print('[REPORT] ' + bot.get_chat(message.chat.id).first_name + '(' + str(
+                            message.chat.id) + '): ' + mess)
                 except:
                     pass
             text_file.close()
@@ -344,6 +378,8 @@ def report(message):
         bot.send_message(message.chat.id, 'Сообщение отправлено!')
     else:
         bot.send_message(message.chat.id, 'Напишите текст обращения!')
+
+
 @bot.message_handler(commands=['help'])
 def help_message(message):
     log(message)
@@ -459,10 +495,11 @@ def query_handler(call):
         bot.send_message(call.message.chat.id, 'Игра не найдена')
         bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id)
     elif RepresentsInt(call.data) and int(call.data) >= 1 and int(call.data) <= 9:
-        isFound=False
+        isFound = False
         for game in gameArray:
-            if (str(game.defender) == str(call.message.chat.id) or str(game.attacker) == str(call.message.chat.id)) and game.isAccepted:
-                isFound=True
+            if (str(game.defender) == str(call.message.chat.id) or str(game.attacker) == str(
+                    call.message.chat.id)) and game.isAccepted:
+                isFound = True
                 if game.field[int(call.data) - 1] == int(call.data):
                     game.field[int(call.data) - 1] = game.symbol;
                     markup = telebot.types.InlineKeyboardMarkup(row_width=3)
@@ -538,70 +575,76 @@ def query_handler(call):
                 else:
                     return
         if not isFound:
-            bot.send_message(call.message.chat.id,"Игра завершена")
-            bot.edit_message_reply_markup(call.message.chat.id,call.message.message_id)
-   # elif RepresentsInt(call.data) and (int(call.data)==100 or int(call.data)==101):
-   #     print("sosi")
-   #     if dict.get(status,call.message.chat.id)==2:
-   #         text_file = open('users/' + str(call.message.chat.id) + '.txt', 'r', encoding='utf-8')
-    #        prof = json.loads(text_file.read())
-   #         text_file.close()
-   #         if int(call.data)==100:
-   #             prof['isEvening'] = True
-    #        else:
-   #             prof['isEvening'] = False
+            bot.send_message(call.message.chat.id, "Игра завершена")
+            bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id)
 
-   #         data = json.dumps(prof)
-   #         text_file = open('users/' + str(call.message.chat.id) + '.txt', 'w', encoding='utf-8')
-   #         text_file.write(data)
-   #         text_file.close()
-   #         bot.edit_message_reply_markup(call.message.chat.id,call.message.message_id)
-   #         dict.pop(status,call.message.chat.id)
+
+# elif RepresentsInt(call.data) and (int(call.data)==100 or int(call.data)==101):
+#     print("sosi")
+#     if dict.get(status,call.message.chat.id)==2:
+#         text_file = open('users/' + str(call.message.chat.id) + '.txt', 'r', encoding='utf-8')
+#        prof = json.loads(text_file.read())
+#         text_file.close()
+#         if int(call.data)==100:
+#             prof['isEvening'] = True
+#        else:
+#             prof['isEvening'] = False
+
+#         data = json.dumps(prof)
+#         text_file = open('users/' + str(call.message.chat.id) + '.txt', 'w', encoding='utf-8')
+#         text_file.write(data)
+#         text_file.close()
+#         bot.edit_message_reply_markup(call.message.chat.id,call.message.message_id)
+#         dict.pop(status,call.message.chat.id)
 
 
 @bot.message_handler(commands=['dice'])
 def dice_message(message):
     log(message)
-    if len(message.text.split(' '))==1:
+    if len(message.text.split(' ')) == 1:
         dice = random.randint(1, 6)
         bot.send_message(message.chat.id, 'Вы кинули кости и выпало: ' + str(dice))
         bot.send_sticker(message.chat.id, sticker_pack[dice - 1])
     else:
         dice1 = random.randint(1, 6)
         dice2 = random.randint(1, 6)
-        bot.send_message(message.chat.id, 'Вы кинули кости и выпало: ' + str(dice1+dice2))
+        bot.send_message(message.chat.id, 'Вы кинули кости и выпало: ' + str(dice1 + dice2))
         bot.send_sticker(message.chat.id, sticker_pack[dice1 - 1])
         bot.send_sticker(message.chat.id, sticker_pack[dice2 - 1])
 
 
 @bot.message_handler(content_types=['sticker'])
 def sticker_message(message):
-    message.text='[sticker]: ' + message.sticker.file_id
+    message.text = '[sticker]: ' + message.sticker.file_id
     log(message)
+
 
 @bot.message_handler(content_types=["location"])
 def location(message):
     if message.location is not None:
-        #log(message)
+        # log(message)
         print("latitude: %s; longitude: %s" % (message.location.latitude, message.location.longitude))
-    if dict.get(status,message.chat.id)==1:
-        thread1 = Thread(target=setCity,args=(message.chat.id,message.location))
+    if dict.get(status, message.chat.id) == 1:
+        thread1 = Thread(target=setCity, args=(message.chat.id, message.location))
         thread1.start()
         thread1.join()
+
 
 @bot.message_handler(content_types=['text'])
 def just_message(message):
     log(message)
+
+
 #    if dict.get(status,message.chat.id)==1:
 #        thread1 = Thread(target=setCity,args=(message.chat.id,message.text))
 #        thread1.start()
- #       thread1.join()
-      #  markup = telebot.types.InlineKeyboardMarkup()
-      #  markup.add(telebot.types.InlineKeyboardButton(text="Да", callback_data=100),
-      #             telebot.types.InlineKeyboardButton(text="Нет", callback_data=101),
-      #             )
-      #  bot.send_message(message.chat.id, "Установить оповещения о погоде утром?",reply_markup=markup).message_id
-     #   status[message.chat.id]=2
+#       thread1.join()
+#  markup = telebot.types.InlineKeyboardMarkup()
+#  markup.add(telebot.types.InlineKeyboardButton(text="Да", callback_data=100),
+#             telebot.types.InlineKeyboardButton(text="Нет", callback_data=101),
+#             )
+#  bot.send_message(message.chat.id, "Установить оповещения о погоде утром?",reply_markup=markup).message_id
+#   status[message.chat.id]=2
 
 
 bot.polling(True)
