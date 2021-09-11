@@ -150,7 +150,7 @@ def log(message):
     now = datetime.datetime.today()
     print('['+ now.strftime("%d.%m.%Y-%H:%M:%S") +'] '+ bot.get_chat(message.chat.id).first_name+' ('+str(message.chat.id)+'): ' + str(message.text))
     #'logs\\log '+now.strftime("%d-%m-%Y"+'.txt'),'['+ now.strftime("%d.%m.%Y-%H:%M:%S") +'] '+ bot.get_chat(message.chat.id).first_name+' ('+str(message.chat.id)+'): ' + message.text +'\n'
-    thread1 = Thread(target=append_to_file,args=(('logs\\log '+now.strftime("%d-%m-%Y"+'.txt')),('['+ now.strftime("%d.%m.%Y-%H:%M:%S") +'] '+ bot.get_chat(message.chat.id).first_name+' ('+str(message.chat.id)+'): ' + message.text +'\n'),))
+    thread1 = Thread(target=append_to_file,args=(('logs/log '+now.strftime("%d-%m-%Y"+'.txt')),('['+ now.strftime("%d.%m.%Y-%H:%M:%S") +'] '+ bot.get_chat(message.chat.id).first_name+' ('+str(message.chat.id)+'): ' + message.text +'\n'),))
     thread1.start()
     thread1.join()
     return
