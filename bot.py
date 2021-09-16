@@ -427,7 +427,7 @@ def help_message(message):
 /weather - Вывести погоду
 /report - Обратится к администратору
 
-Создатель - @sumjest
+Создатель - @romaaaka
         ''')
 
 
